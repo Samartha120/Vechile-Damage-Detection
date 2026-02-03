@@ -33,9 +33,11 @@ const HeroSection = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in" style={{ animationDelay: '0.3s' }}>
-              <Button variant="hero" size="xl">
-                Start Detection
-                <ArrowRight className="w-5 h-5" />
+              <Button variant="hero" size="xl" asChild>
+                <a href="#demo">
+                  Start Detection
+                  <ArrowRight className="w-5 h-5" />
+                </a>
               </Button>
               <Button variant="glass" size="xl">
                 Watch Demo

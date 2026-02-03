@@ -2,7 +2,6 @@ import { useState, useCallback, useRef } from "react";
 import { GlassCard } from "./GlassCard";
 import { Button } from "./ui/button";
 import { Upload, Image, AlertTriangle, CheckCircle, X, DollarSign, Wrench, Download, Video, Play, Layers, Images } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import { Progress } from "./ui/progress";
@@ -73,6 +72,44 @@ const DemoSection = () => {
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'multi-image' | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
+
+  const getStaticResult = (imageBase64?: string | null): AnalysisResult => {
+    return {
+      hasVehicle: true,
+      hasDamage: true,
+      overallSeverity: "Moderate",
+      confidenceScore: 92,
+      damages: [
+        {
+          type: "Dent",
+          location: "Front bumper",
+          severity: "Moderate",
+          description: "Visible dent with minor deformation on the front bumper area.",
+        },
+        {
+          type: "Scratch",
+          location: "Left fender",
+          severity: "Minor",
+          description: "Surface scratches likely caused by light contact.",
+        },
+      ],
+      affectedAreas: ["Front bumper", "Left fender"],
+      estimatedRepairCost: {
+        min: 4500,
+        max: 12000,
+        currency: "INR",
+      },
+      recommendations: [
+        "Inspect bumper alignment and mounts.",
+        "Polish scratches and apply protective coating.",
+        "Schedule a body shop assessment for precise repair cost.",
+      ],
+      summary:
+        "Static demo result: Vehicle damage detected with moderate severity. " +
+        "Recommended repair includes bumper inspection and scratch correction.",
+      annotatedImage: imageBase64 || null,
+    };
+  };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -253,23 +290,12 @@ const DemoSection = () => {
     try {
       for (let i = 0; i < uploadedImages.length; i++) {
         setCurrentAnalyzingFrame(i + 1);
-        
-        const { data, error } = await supabase.functions.invoke('analyze-damage', {
-          body: { imageBase64: uploadedImages[i] }
+        const staticResult = getStaticResult(uploadedImages[i]);
+        imageResults.push({
+          ...staticResult,
+          frameIndex: i,
+          frameImage: uploadedImages[i],
         });
-
-        if (error) {
-          console.error(`Error analyzing image ${i + 1}:`, error);
-          continue;
-        }
-
-        if (data && !data.error) {
-          imageResults.push({
-            ...data,
-            frameIndex: i,
-            frameImage: uploadedImages[i]
-          });
-        }
         
         setAnalysisProgress(((i + 1) / uploadedImages.length) * 100);
       }
@@ -380,23 +406,12 @@ const DemoSection = () => {
     try {
       for (let i = 0; i < videoFrames.length; i++) {
         setCurrentAnalyzingFrame(i + 1);
-        
-        const { data, error } = await supabase.functions.invoke('analyze-damage', {
-          body: { imageBase64: videoFrames[i] }
+        const staticResult = getStaticResult(videoFrames[i]);
+        frameResults.push({
+          ...staticResult,
+          frameIndex: i,
+          frameImage: videoFrames[i],
         });
-
-        if (error) {
-          console.error(`Error analyzing frame ${i + 1}:`, error);
-          continue;
-        }
-
-        if (data && !data.error) {
-          frameResults.push({
-            ...data,
-            frameIndex: i,
-            frameImage: videoFrames[i]
-          });
-        }
         
         setAnalysisProgress(((i + 1) / videoFrames.length) * 100);
       }
@@ -498,18 +513,7 @@ const DemoSection = () => {
     
     setIsAnalyzing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('analyze-damage', {
-        body: { imageBase64: uploadedImage }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
+      const data = getStaticResult(uploadedImage);
       setResults(data);
       toast({
         title: "Analysis Complete",

@@ -28,8 +28,8 @@ const Navbar = () => {
             <a href="#demo" className="text-muted-foreground hover:text-primary transition-colors">
               Demo
             </a>
-            <Button variant="hero" size="sm">
-              Get Started
+            <Button variant="hero" size="sm" asChild>
+              <a href="#demo">Get Started</a>
             </Button>
           </div>
 
@@ -55,8 +55,8 @@ const Navbar = () => {
               <a href="#demo" className="text-muted-foreground hover:text-primary transition-colors">
                 Demo
               </a>
-              <Button variant="hero" size="sm" className="w-fit">
-                Get Started
+              <Button variant="hero" size="sm" className="w-fit" asChild>
+                <a href="#demo">Get Started</a>
               </Button>
             </div>
           </div>
